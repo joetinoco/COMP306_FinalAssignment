@@ -15,7 +15,19 @@ module.exports = {
         if (res.body.error) return cb(res.body.error);
 
         let messageToReturn = "Sorry, I didn't get that. Could you please be more specific?";
-        if (messageToReturn.indexOf() == -1 && messageToReturn.indexOf() == -1)
+
+        var isDisambiguation = false;
+        if (res.body.parse.categories) {
+          var i = 0;
+          while ((!isDisambiguation) && i < res.body.parse.categories.length) {
+            console.log("category: " + res.body.parse.categories[i]["*"]);
+            if (res.body.parse.categories[i]["*"].toLowerCase().indexOf("disambiguation") >= 0) {
+              isDisambiguation = true;
+            }
+            i++;
+          }
+        }
+        if (!isDisambiguation)
           messageToReturn = findSummaryParagraph(res.body.parse.text["*"], searchText);
         return cb(null, messageToReturn);
       });
