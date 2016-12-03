@@ -1,31 +1,34 @@
 'use strict'
 
 const request = require('superagent');
-let cheerio = require('cheerio'); 
+let cheerio = require('cheerio');
 
 module.exports = {
-    search: function (searchText, cb) {
-        console.log(`Searching Wikipedia for: ${searchText}`);
+  search: function (searchText, cb) {
+    console.log(`Searching Wikipedia for: ${searchText}`);
 
-        request.get(`http://en.wikipedia.org/w/api.php?action=parse&page=${searchText}&format=json&redirects`)
-          .end((err, res) => {
-              if (err) return cb(err);
+    request.get(`http://en.wikipedia.org/w/api.php?action=parse&page=${searchText}&format=json&redirects`)
+      .end((err, res) => {
+        if (err) return cb(err);
 
-              if (res.statusCode != 200) return cb('Expect status 200 but got ' + res.statusCode);
-              if (res.body.error) return cb(res.body.error);
+        if (res.statusCode != 200) return cb('Expect status 200 but got ' + res.statusCode);
+        if (res.body.error) return cb(res.body.error);
 
-              return cb(null, findSummaryParagraph(res.body.parse.text["*"], searchText));
-          });
-    }
+        let messageToReturn = "Sorry, I didn't get that. Could you please be more specific?";
+        if (messageToReturn.indexOf() == -1 && messageToReturn.indexOf() == -1)
+          messageToReturn = findSummaryParagraph(res.body.parse.text["*"], searchText);
+        return cb(null, messageToReturn);
+      });
+  }
 }
 
 // Auxiliary function to find which paragraph of the result contains a summary text.
 function findSummaryParagraph(rawResponse, searchText) {
-  
+
   let $ = cheerio.load(rawResponse);
   let summary;
-  let searchTextWords = searchText.replace(/[\W]+/g,' ').split(' ');
-  
+  let searchTextWords = searchText.replace(/[\W]+/g, ' ').split(' ');
+
   // Go through all paragraphs
   $('p').each((idx, p) => {
 
@@ -53,8 +56,8 @@ function findSummaryParagraph(rawResponse, searchText) {
   // Do some additional cleanup of Wikipedia empty references, e.g. [1], [2]
   if (summary) {
     summary = summary.replace(/\[[0-9]+\]/g, '');
-  } 
+  }
 
   return summary ? summary : `Sorry, I could not find it on Wikipedia.`;
-  
+
 }
